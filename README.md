@@ -73,3 +73,6 @@ the same paths.
 4. Refactor while all tests remain green.
 5. Continue with availability, compatibility, candidate selection, rotation, and
    atomic reservation tests.
+## Planned Dashboard
+
+![Final dashboard concept](docs/images/final-dashboard-concept.png)
