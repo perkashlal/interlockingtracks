@@ -44,6 +44,27 @@ com.interlocking.assignment
 
 The assignment domain must not depend on Spring, XML, PostgreSQL, HTTP, or JavaFX.
 
+## Test source sets
+
+Tests are separated by scope:
+
+```text
+src/test/java  unit tests (*Test.java)
+src/it/java    integration tests (*IT.java)
+src/e2e/java   end-to-end tests (*E2E.java)
+```
+
+Run them independently:
+
+```text
+mvn test
+mvn verify -Pintegration
+mvn verify -Pe2e
+```
+
+Use lowercase directory names so local Windows builds and Linux CI use exactly
+the same paths.
+
 ## First implementation sequence
 
 1. Add the interval-overlap test and confirm the RED failure.
