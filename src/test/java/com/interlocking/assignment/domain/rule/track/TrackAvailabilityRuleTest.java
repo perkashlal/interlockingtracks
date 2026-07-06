@@ -27,6 +27,28 @@ class TrackAvailabilityRuleTest {
         assertThat(available).isFalse();
     }
 
+    @Test
+    void marksTrackUnavailableWhenAnyProtectedOccupationOverlaps() {
+        var requestedInterval = interval(
+                "2026-08-05T10:20:00Z",
+                "2026-08-05T10:40:00Z");
+        var earlierOccupation = interval(
+                "2026-08-05T09:00:00Z",
+                "2026-08-05T09:30:00Z");
+        var conflictingOccupation = interval(
+                "2026-08-05T10:30:00Z",
+                "2026-08-05T10:50:00Z");
+        var laterOccupation = interval(
+                "2026-08-05T11:00:00Z",
+                "2026-08-05T11:30:00Z");
+
+        var available = rule.isAvailable(
+                requestedInterval,
+                List.of(earlierOccupation, conflictingOccupation, laterOccupation));
+
+        assertThat(available).isFalse();
+    }
+
     private static TimeInterval interval(String start, String end) {
         return new TimeInterval(Instant.parse(start), Instant.parse(end));
     }
