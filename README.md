@@ -73,6 +73,14 @@ the same paths.
 4. Refactor while all tests remain green.
 5. Continue with availability, compatibility, candidate selection, rotation, and
    atomic reservation tests.
-## Planned Dashboard
+## Safety Features
 
-![Final dashboard concept](docs/images/final-dashboard-concept.png)
+- Prevents assigning occupied tracks
+- Rejects conflicting train routes
+- Locks a route before train movement
+- Releases the route only after train exit
+- Uses fail-safe logic: unknown state = unsafe
+- Emergency stop disables all new assignments
+- Priority affects scoring only, never safety
+- Records assignment and rejection reasons
+
