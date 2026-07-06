@@ -1,0 +1,38 @@
+name: Bug report
+description: Report incorrect assignment, XML processing, or system behavior
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Observed behavior
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps and sanitized input
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety or double-booking impact
+      description: State whether this could create an incorrect or conflicting assignment.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+    validations:
+      required: true
+
