@@ -3,6 +3,8 @@
 Java 25/Spring Boot service for automatic XML ingestion and concurrency-safe train
 track/platform assignment.
 
+![Project architecture and safety flow](docs/assets/project-architecture.svg)
+
 ## Current state: foundation baseline
 
 The initial repository commit contains a green project foundation. The first TDD
@@ -75,12 +77,10 @@ the same paths.
    atomic reservation tests.
 ## Safety Features
 
-- Prevents assigning occupied tracks
-- Rejects conflicting train routes
-- Locks a route before train movement
-- Releases the route only after train exit
-- Uses fail-safe logic: unknown state = unsafe
-- Emergency stop disables all new assignments
-- Priority affects scoring only, never safety
-- Records assignment and rejection reasons
-
+- Prevent assigning occupied tracks or platforms.
+- Reject conflicting train routes before scoring or rotation.
+- Apply clearance buffers around every occupied time interval.
+- Treat missing, stale, unknown, or conflicting status as unsafe.
+- Send unsafe or uncertain requests to manual review instead of auto-assigning.
+- Keep priority as a scoring input only; priority must never override safety.
+- Record assignment and rejection reasons for audit and thesis evidence.
