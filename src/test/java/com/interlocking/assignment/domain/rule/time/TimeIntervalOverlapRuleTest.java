@@ -18,8 +18,15 @@ class TimeIntervalOverlapRuleTest {
         assertThat(rule.overlaps(existing, requested)).isTrue();
     }
 
+    @Test
+    void treatsAdjacentHalfOpenIntervalsAsNonOverlapping() {
+        var first = interval("2026-08-05T10:00:00Z", "2026-08-05T10:30:00Z");
+        var second = interval("2026-08-05T10:30:00Z", "2026-08-05T11:00:00Z");
+
+        assertThat(rule.overlaps(first, second)).isFalse();
+    }
+
     private static TimeInterval interval(String start, String end) {
         return new TimeInterval(Instant.parse(start), Instant.parse(end));
     }
 }
-
