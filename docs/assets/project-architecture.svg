@@ -1,0 +1,66 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="24" fill="#0F172A"/>
+  <text x="600" y="58" text-anchor="middle" fill="#F8FAFC" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700">Automatic Train Track and Platform Assignment</text>
+  <text x="600" y="92" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="17">XML ingestion, safety validation, availability checking, automatic rotation, and audit-ready assignments</text>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#020617" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#38BDF8"/>
+    </marker>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="55" y="150" width="180" height="105" rx="18" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+    <text x="145" y="188" text-anchor="middle" fill="#E0F2FE" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">XML Input</text>
+    <text x="145" y="219" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Train requests</text>
+    <text x="145" y="239" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Track status</text>
+
+    <rect x="300" y="150" width="190" height="105" rx="18" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+    <text x="395" y="188" text-anchor="middle" fill="#E0F2FE" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Ingestion</text>
+    <text x="395" y="219" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Parse XML safely</text>
+    <text x="395" y="239" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Validate schema</text>
+
+    <rect x="555" y="150" width="205" height="105" rx="18" fill="#1E293B" stroke="#F97316" stroke-width="2"/>
+    <text x="657" y="188" text-anchor="middle" fill="#FFEDD5" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Safety Gate</text>
+    <text x="657" y="219" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Unknown = unsafe</text>
+    <text x="657" y="239" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Reject conflicts first</text>
+
+    <rect x="825" y="150" width="205" height="105" rx="18" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+    <text x="927" y="188" text-anchor="middle" fill="#E0F2FE" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Assignment</text>
+    <text x="927" y="219" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Availability + rotation</text>
+    <text x="927" y="239" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Priority scoring</text>
+
+    <rect x="455" y="345" width="290" height="135" rx="20" fill="#172554" stroke="#22C55E" stroke-width="2"/>
+    <text x="600" y="383" text-anchor="middle" fill="#DCFCE7" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">Domain Rules</text>
+    <text x="600" y="416" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">No double booking</text>
+    <text x="600" y="440" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Clearance buffer around occupations</text>
+    <text x="600" y="464" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Route compatibility before selection</text>
+
+    <rect x="850" y="345" width="235" height="135" rx="20" fill="#1E293B" stroke="#A78BFA" stroke-width="2"/>
+    <text x="967" y="383" text-anchor="middle" fill="#EDE9FE" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">Output</text>
+    <text x="967" y="416" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Assigned track/platform</text>
+    <text x="967" y="440" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Manual review when unsafe</text>
+    <text x="967" y="464" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Decision reason</text>
+
+    <rect x="115" y="345" width="235" height="135" rx="20" fill="#1E293B" stroke="#A78BFA" stroke-width="2"/>
+    <text x="232" y="383" text-anchor="middle" fill="#EDE9FE" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">Persistence</text>
+    <text x="232" y="416" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Track reservations</text>
+    <text x="232" y="440" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Atomic locking</text>
+    <text x="232" y="464" text-anchor="middle" fill="#CBD5E1" font-family="Segoe UI, Arial, sans-serif" font-size="15">Audit trail</text>
+
+    <rect x="300" y="565" width="600" height="80" rx="18" fill="#450A0A" stroke="#F87171" stroke-width="2"/>
+    <text x="600" y="599" text-anchor="middle" fill="#FEE2E2" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">Fail-Safe Principle</text>
+    <text x="600" y="628" text-anchor="middle" fill="#FECACA" font-family="Segoe UI, Arial, sans-serif" font-size="16">If data is missing, stale, conflicting, or uncertain, the system does not auto-assign and sends the request to manual review.</text>
+  </g>
+
+  <path d="M235 202 H300" stroke="#38BDF8" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M490 202 H555" stroke="#38BDF8" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M760 202 H825" stroke="#38BDF8" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M657 255 V345" stroke="#22C55E" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M745 412 H850" stroke="#A78BFA" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M455 412 H350" stroke="#A78BFA" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M600 480 V565" stroke="#F87171" stroke-width="3" marker-end="url(#arrow)"/>
+</svg>
