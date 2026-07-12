@@ -1,34 +1,135 @@
-name: CI
+name: CI/CD
 
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "25"
+  MAVEN_ARGS: "--batch-mode --no-transfer-progress"
+
 jobs:
-  test:
+  unit-tests:
+    name: Fast unit checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "25"
+          java-version: ${{ env.JAVA_VERSION }}
           cache: maven
-      - name: Unit tests
-        run: mvn --batch-mode test
-      - name: Integration tests
-        run: mvn --batch-mode verify -Pintegration
-      - name: End-to-end tests
-        run: mvn --batch-mode verify -Pe2e
-      - name: Upload test reports
+
+      - name: Run unit tests
+        run: mvn $MAVEN_ARGS test
+
+      - name: Upload unit test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: unit-test-reports
           path: target/surefire-reports/
           if-no-files-found: ignore
+
+  integration-tests:
+    name: XML integration checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    needs: unit-tests
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Run integration tests
+        run: mvn $MAVEN_ARGS verify -Pintegration
+
+      - name: Upload integration test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: target/failsafe-reports/
+          if-no-files-found: ignore
+
+  e2e-tests:
+    name: API end-to-end checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    needs: unit-tests
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Run E2E tests
+        run: mvn $MAVEN_ARGS verify -Pe2e
+
+      - name: Upload E2E test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-reports
+          path: target/failsafe-reports/
+          if-no-files-found: ignore
+
+  package:
+    name: Package Spring Boot app
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    needs: [unit-tests, integration-tests, e2e-tests]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Build application jar
+        run: mvn $MAVEN_ARGS package -DskipTests
+
+      - name: Upload Spring Boot jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: automatic-train-assignment-jar
+          path: target/*.jar
+          if-no-files-found: error
+
+      - name: Write CI/CD summary
+        run: |
+          echo "## Automatic Train Assignment CI/CD" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Java: $JAVA_VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Unit tests: passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- XML integration tests: passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- API E2E tests: passed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Spring Boot jar uploaded as workflow artifact" >> "$GITHUB_STEP_SUMMARY"
