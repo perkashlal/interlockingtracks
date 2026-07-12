@@ -19,8 +19,12 @@ jobs:
           distribution: temurin
           java-version: "25"
           cache: maven
-      - name: Verify
-        run: mvn --batch-mode --update-snapshots verify
+      - name: Unit tests
+        run: mvn --batch-mode test
+      - name: Integration tests
+        run: mvn --batch-mode verify -Pintegration
+      - name: End-to-end tests
+        run: mvn --batch-mode verify -Pe2e
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -28,4 +32,3 @@ jobs:
           name: test-reports
           path: target/surefire-reports/
           if-no-files-found: ignore
-

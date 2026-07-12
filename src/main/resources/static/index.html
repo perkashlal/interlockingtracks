@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Train Interlocking Assignment System</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue:#1d4ed8; --blue2:#2563eb; --green:#15803d; --red:#b91c1c; --amber:#b45309;
+      --purple:#6d28d9; --ink:#172033; --muted:#64748b; --panel:#ffffff; --line:#d7e0ef; --soft:#f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: radial-gradient(circle at top left, #dbeafe, #f8fafc 42%, #eef2ff); color: var(--ink); }
+    header { padding: 38px 24px 22px; text-align: center; }
+    header h1 { margin: 0 0 10px; font-size: clamp(2rem, 4vw, 3.6rem); letter-spacing: -0.04em; }
+    header p { margin: 0 auto; max-width: 980px; color: var(--muted); font-size: 1.08rem; line-height: 1.6; }
+    main { width: min(1320px, calc(100% - 32px)); margin: 0 auto 48px; display: grid; gap: 20px; grid-template-columns: repeat(12, 1fr); }
+    .card { background: rgba(255,255,255,.95); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 16px 40px rgba(30,41,59,.10); padding: 22px; }
+    .span-2 { grid-column: span 2; } .span-3 { grid-column: span 3; } .span-4 { grid-column: span 4; } .span-5 { grid-column: span 5; } .span-6 { grid-column: span 6; } .span-7 { grid-column: span 7; } .wide { grid-column: 1 / -1; }
+    h2 { margin: 0 0 14px; }
+    p { line-height: 1.55; }
+    code { background: #eef2ff; color: #1e3a8a; padding: 2px 6px; border-radius: 6px; font-weight: 700; }
+    .status { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px; background: #dcfce7; color: var(--green); font-weight: 800; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+    .metric { font-size: 2.2rem; font-weight: 850; letter-spacing: -0.05em; margin-top: 4px; }
+    .metric-label { color: var(--muted); font-weight: 650; }
+    .links a { display: inline-block; margin: 4px 12px 4px 0; color: var(--blue); font-weight: 700; }
+    button { border: 0; border-radius: 12px; background: linear-gradient(135deg, var(--blue), var(--blue2)); color: white; padding: 12px 16px; font-size: 1rem; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(29,78,216,.22); }
+    button.secondary { background: #e0e7ff; color: #1e3a8a; box-shadow: none; }
+    button.warning { background: #fef3c7; color: #92400e; box-shadow: none; }
+    button:hover { filter: brightness(1.05); }
+    button:disabled { opacity: .65; cursor: wait; }
+    label { display: grid; gap: 6px; font-weight: 750; color: #334155; }
+    input, select { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 11px 12px; font: inherit; background: white; color: var(--ink); }
+    .control-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 16px; }
+    .track-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 10px; }
+    .track { border: 1px solid #cbd5e1; border-radius: 14px; padding: 12px; background: var(--soft); display: grid; gap: 8px; }
+    .track-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .track strong { font-size: 1.06rem; }
+    .badge { width: fit-content; border-radius: 999px; padding: 5px 9px; font-size: .8rem; font-weight: 800; background: #dbeafe; color: #1d4ed8; }
+    .badge.closed { background: #fee2e2; color: var(--red); }
+    .badge.maintenance { background: #fef3c7; color: var(--amber); }
+    .badge.unknown { background: #e2e8f0; color: #475569; }
+    .badge.assigned { background: #dcfce7; color: var(--green); }
+    .format-badge { display: inline-flex; align-items: center; gap: 8px; width: fit-content; background: #ede9fe; color: var(--purple); font-weight: 900; border-radius: 999px; padding: 8px 12px; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 16px; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid #e5eaf3; white-space: nowrap; }
+    th { background: #f1f5f9; color: #334155; font-size: .9rem; }
+    tr:last-child td { border-bottom: 0; }
+    .ok { color: var(--green); font-weight: 800; }
+    .review { color: var(--red); font-weight: 800; }
+    pre { margin: 14px 0 0; padding: 16px; border-radius: 14px; background: #0f172a; color: #e2e8f0; overflow: auto; min-height: 70px; max-height: 340px; }
+    .note { color: var(--muted); font-size: .95rem; }
+    .timeline { display: grid; gap: 10px; }
+    .lane { display: grid; grid-template-columns: 58px 1fr; gap: 10px; align-items: center; }
+    .lane-label { font-weight: 850; color: #334155; }
+    .lane-line { position: relative; height: 34px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+    .block { position: absolute; top: 5px; height: 24px; border-radius: 999px; background: linear-gradient(135deg, #22c55e, #15803d); color: white; font-size: .72rem; font-weight: 850; display: flex; align-items: center; justify-content: center; min-width: 26px; padding: 0 6px; box-shadow: 0 4px 10px rgba(21,128,61,.25); }
+    .block.seed { background: linear-gradient(135deg, #64748b, #334155); }
+    .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 330px; overflow: auto; }
+    .log li { border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; background: #f8fafc; }
+    .log .ok { color: var(--green); } .log .review { color: var(--red); }
+    .hidden { display: none !important; }
+    .check-row { display: flex; align-items: center; gap: 10px; font-weight: 800; color: #334155; }
+    .check-row input { width: auto; }
+    @media (max-width: 1000px) { .span-2, .span-3, .span-4, .span-5, .span-6, .span-7 { grid-column: 1 / -1; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Train Interlocking Assignment System</h1>
+    <p>Interactive XML simulator for train track/platform assignment. Adjust train volume, timing, and track status; the browser generates XML requests and submits them to the Spring Boot API.</p>
+  </header>
+
+  <main>
+    <section class="card span-4">
+      <h2>Application status</h2>
+      <p id="health" class="status"><span class="dot"></span> Checking...</p>
+      <p class="links"><a href="/actuator/health">Health endpoint</a><a href="/api/assignments">API help</a></p>
+    </section>
+
+    <section class="card span-2">
+      <div class="format-badge">XML mode</div>
+      <p class="note">Every assignment request uses <code>application/xml</code>.</p>
+    </section>
+
+    <section class="card span-2"><div class="metric" id="totalTrains">20</div><div class="metric-label">train requests</div></section>
+    <section class="card span-2"><div class="metric" id="assignedCount">0</div><div class="metric-label">auto assigned</div></section>
+    <section class="card span-2"><div class="metric" id="reviewCount">0</div><div class="metric-label">manual review</div></section>
+
+    <section class="card wide">
+      <h2>Simulation controls</h2>
+      <div class="control-grid">
+        <label>Number of trains
+          <select id="trainCount">
+            <option value="10">10 trains</option>
+            <option value="20" selected>20 trains</option>
+            <option value="30">30 trains</option>
+          </select>
+        </label>
+        <label>First train start
+          <input id="startTime" type="datetime-local" value="2026-08-05T10:00">
+        </label>
+        <label>Train duration minutes
+          <input id="durationMinutes" type="number" min="5" max="90" value="20">
+        </label>
+        <label>Gap between trains minutes
+          <input id="gapMinutes" type="number" min="1" max="60" value="7">
+        </label>
+        <label>Initial last assigned track
+          <select id="lastTrack"></select>
+        </label>
+        <label>Scenario preset
+          <select id="scenarioPreset">
+            <option value="balanced">Balanced traffic</option>
+            <option value="rush">Rush hour congestion</option>
+            <option value="maintenance">Maintenance disruption</option>
+            <option value="incident">Signal uncertainty incident</option>
+          </select>
+        </label>
+        <label>Simulation speed
+          <select id="simulationSpeed">
+            <option value="0">Instant</option>
+            <option value="150" selected>Fast animation</option>
+            <option value="500">Slow control-room view</option>
+          </select>
+        </label>
+        <label>Results filter
+          <select id="resultFilter">
+            <option value="ALL">Show all</option>
+            <option value="ASSIGNED">Assigned only</option>
+            <option value="MANUAL">Manual review only</option>
+          </select>
+        </label>
+        <label class="check-row">
+          <input id="showXml" type="checkbox" checked>
+          Show XML panels
+        </label>
+      </div>
+      <div class="actions">
+        <button id="runBtn" type="button">Run XML Simulation</button>
+        <button id="stepBtn" class="secondary" type="button">Step One Train</button>
+        <button id="randomBtn" class="warning" type="button">Random Scenario</button>
+        <button id="exportBtn" class="secondary" type="button">Export Results JSON</button>
+        <button id="resetBtn" class="secondary" type="button">Reset</button>
+      </div>
+      <pre id="summary">Ready. Choose settings, edit track statuses, then run the XML simulation.</pre>
+    </section>
+
+    <section class="card wide">
+      <h2>Editable track inventory</h2>
+      <p class="note">Change a track to CLOSED, UNDER_MAINTENANCE, or UNKNOWN and rerun. The XML request will include your selected status.</p>
+      <div id="trackGrid" class="track-grid"></div>
+    </section>
+
+    <section class="card span-7">
+      <h2>Timeline view</h2>
+      <p class="note">Green blocks are assigned trains. Dark blocks are pre-existing occupied windows.</p>
+      <div id="timeline" class="timeline"></div>
+    </section>
+
+    <section class="card span-5">
+      <h2>Live assignment log</h2>
+      <ul id="liveLog" class="log"><li class="note">No trains processed yet.</li></ul>
+    </section>
+
+    <section class="card span-6">
+      <h2>Last XML request sent</h2>
+      <pre id="xmlPreview">No XML request sent yet.</pre>
+    </section>
+
+    <section class="card span-6">
+      <h2>Last API response</h2>
+      <pre id="responsePreview">No API response yet.</pre>
+    </section>
+
+    <section class="card wide">
+      <h2>Assignment results</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Train request</th><th>Arrival</th><th>Departure</th><th>Request format</th><th>Outcome</th><th>Assigned track</th><th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="8" class="note">No simulation run yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const baseTracks = [
+      { id: "T1", status: "OPEN", occupations: [] },
+      { id: "T2", status: "OPEN", occupations: [] },
+      { id: "T3", status: "CLOSED", occupations: [] },
+      { id: "T4", status: "OPEN", occupations: [{ start: "2026-08-05T10:00:00Z", end: "2026-08-05T10:45:00Z", seed: true, label: "BUSY" }] },
+      { id: "T5", status: "OPEN", occupations: [] },
+      { id: "T6", status: "UNDER_MAINTENANCE", occupations: [] },
+      { id: "T7", status: "OPEN", occupations: [{ start: "2026-08-05T11:15:00Z", end: "2026-08-05T12:00:00Z", seed: true, label: "BUSY" }] },
+      { id: "T8", status: "OPEN", occupations: [] },
+      { id: "T9", status: "OPEN", occupations: [] },
+      { id: "T10", status: "UNKNOWN", occupations: [] },
+      { id: "T11", status: "OPEN", occupations: [] },
+      { id: "T12", status: "OPEN", occupations: [] }
+    ];
+
+    let workingTracks = [];
+    let plannedTrains = [];
+    let nextTrainIndex = 0;
+    let lastAssignedTrackId = "T1";
+    let results = [];
+
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    function xmlEscape(value) {
+      return String(value).replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("'", "&apos;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    function buildAssignmentXml(train, tracks, lastTrackId) {
+      const trackXml = tracks.map(track => {
+        const occupations = track.occupations.map(occupation =>
+          `      <occupation start="${xmlEscape(occupation.start)}" end="${xmlEscape(occupation.end)}"/>`
+        ).join("\n");
+        if (!occupations) return `    <track id="${xmlEscape(track.id)}" status="${xmlEscape(track.status)}"/>`;
+        return `    <track id="${xmlEscape(track.id)}" status="${xmlEscape(track.status)}">\n${occupations}\n    </track>`;
+      }).join("\n");
+      return `<assignmentRequest id="${xmlEscape(train.requestId)}"\n                   start="${xmlEscape(train.start)}"\n                   end="${xmlEscape(train.end)}"\n                   lastAssignedTrackId="${xmlEscape(lastTrackId)}">\n  <tracks>\n${trackXml}\n  </tracks>\n</assignmentRequest>`;
+    }
+
+    function cloneTracks() { return JSON.parse(JSON.stringify(baseTracks)); }
+    function toLocalInputIso(date) { return date.toISOString().slice(0, 16); }
+    function localInputToUtc(value) { return new Date(value).toISOString(); }
+
+    function buildPlannedTrains() {
+      const count = Number(document.getElementById("trainCount").value);
+      const duration = Number(document.getElementById("durationMinutes").value);
+      const gap = Number(document.getElementById("gapMinutes").value);
+      const firstStart = new Date(document.getElementById("startTime").value);
+      plannedTrains = Array.from({ length: count }, (_, index) => {
+        const start = new Date(firstStart.getTime() + index * gap * 60 * 1000);
+        const end = new Date(start.getTime() + duration * 60 * 1000);
+        return { requestId: `TRAIN-${String(index + 1).padStart(2, "0")}`, start: start.toISOString(), end: end.toISOString() };
+      });
+      document.getElementById("totalTrains").textContent = plannedTrains.length;
+    }
+
+    function statusClass(status) {
+      if (status === "CLOSED") return "closed";
+      if (status === "UNDER_MAINTENANCE") return "maintenance";
+      if (status === "UNKNOWN") return "unknown";
+      return "";
+    }
+
+    function renderTracks() {
+      const grid = document.getElementById("trackGrid");
+      grid.innerHTML = workingTracks.map(track => {
+        const occupations = track.occupations.length;
+        return `<div class="track">
+          <div class="track-top"><strong>${track.id}</strong><span class="badge ${statusClass(track.status)}">${track.status}</span></div>
+          <select data-track-id="${track.id}" aria-label="${track.id} status">
+            ${["OPEN", "CLOSED", "UNDER_MAINTENANCE", "UNKNOWN"].map(status => `<option value="${status}" ${status === track.status ? "selected" : ""}>${status}</option>`).join("")}
+          </select>
+          <span class="note">${occupations} occupation${occupations === 1 ? "" : "s"}</span>
+        </div>`;
+      }).join("");
+      grid.querySelectorAll("select").forEach(select => {
+        select.addEventListener("change", event => {
+          const track = workingTracks.find(item => item.id === event.target.dataset.trackId);
+          track.status = event.target.value;
+          renderTracks();
+          renderTimeline();
+        });
+      });
+    }
+
+    function renderTimeline() {
+      const timeline = document.getElementById("timeline");
+      buildPlannedTrains();
+      const allTimes = [...plannedTrains.flatMap(t => [new Date(t.start), new Date(t.end)]), ...workingTracks.flatMap(t => t.occupations.flatMap(o => [new Date(o.start), new Date(o.end)]))];
+      const min = Math.min(...allTimes.map(d => d.getTime()));
+      const max = Math.max(...allTimes.map(d => d.getTime()));
+      const range = Math.max(max - min, 1);
+      timeline.innerHTML = workingTracks.map(track => {
+        const blocks = track.occupations.map(occupation => {
+          const left = ((new Date(occupation.start).getTime() - min) / range) * 100;
+          const width = Math.max(((new Date(occupation.end).getTime() - new Date(occupation.start).getTime()) / range) * 100, 3);
+          const label = occupation.label || occupation.trainId || "BUSY";
+          return `<span class="block ${occupation.seed ? "seed" : ""}" style="left:${left}%; width:${width}%" title="${track.id} ${label}">${label}</span>`;
+        }).join("");
+        return `<div class="lane"><div class="lane-label">${track.id}</div><div class="lane-line">${blocks}</div></div>`;
+      }).join("");
+    }
+
+    function resetSimulation() {
+      workingTracks = cloneTracks();
+      buildPlannedTrains();
+      nextTrainIndex = 0;
+      lastAssignedTrackId = document.getElementById("lastTrack").value || "T1";
+      results = [];
+      document.getElementById("assignedCount").textContent = "0";
+      document.getElementById("reviewCount").textContent = "0";
+      document.getElementById("summary").textContent = "Ready. Choose settings, edit track statuses, then run the XML simulation.";
+      document.getElementById("xmlPreview").textContent = "No XML request sent yet.";
+      document.getElementById("responsePreview").textContent = "No API response yet.";
+      document.getElementById("liveLog").innerHTML = '<li class="note">No trains processed yet.</li>';
+      document.getElementById("resultsBody").innerHTML = '<tr><td colspan="8" class="note">No simulation run yet.</td></tr>';
+      renderTracks();
+      renderTimeline();
+    }
+
+    async function loadHealth() {
+      const healthEl = document.getElementById("health");
+      try {
+        const response = await fetch("/actuator/health");
+        const data = await response.json();
+        healthEl.innerHTML = `<span class="dot"></span> ${data.status}`;
+      } catch (error) {
+        healthEl.style.background = "#fee2e2";
+        healthEl.style.color = "#b91c1c";
+        healthEl.innerHTML = `<span class="dot"></span> Unable to check health`;
+      }
+    }
+
+    function renderResults() {
+      const body = document.getElementById("resultsBody");
+      const filter = document.getElementById("resultFilter")?.value || "ALL";
+      const visibleResults = results.filter(result => {
+        if (filter === "ASSIGNED") return result.outcome === "ASSIGNED";
+        if (filter === "MANUAL") return result.outcome !== "ASSIGNED";
+        return true;
+      });
+      if (visibleResults.length === 0) {
+        body.innerHTML = '<tr><td colspan="8" class="note">No results match the current filter.</td></tr>';
+        return;
+      }
+      body.innerHTML = visibleResults.map((result) => {
+        const index = results.indexOf(result);
+        const outcomeClass = result.outcome === "ASSIGNED" ? "ok" : "review";
+        return `<tr>
+          <td>${index + 1}</td><td>${result.requestId}</td>
+          <td>${new Date(result.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
+          <td>${new Date(result.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
+          <td><span class="badge">XML</span></td><td class="${outcomeClass}">${result.outcome}</td>
+          <td>${result.assignedTrackId || "-"}</td><td>${result.reasons.join(", ")}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    function renderCountersAndLog(result) {
+      document.getElementById("assignedCount").textContent = results.filter(r => r.outcome === "ASSIGNED").length;
+      document.getElementById("reviewCount").textContent = results.filter(r => r.outcome !== "ASSIGNED").length;
+      const log = document.getElementById("liveLog");
+      if (results.length === 1) log.innerHTML = "";
+      const li = document.createElement("li");
+      const cls = result.outcome === "ASSIGNED" ? "ok" : "review";
+      li.innerHTML = `<strong>${result.requestId}</strong> Ã¢â€ â€™ <span class="${cls}">${result.outcome}</span> ${result.assignedTrackId ? `on ${result.assignedTrackId}` : "for manual review"}`;
+      log.prepend(li);
+    }
+
+    async function processOneTrain() {
+      buildPlannedTrains();
+      if (nextTrainIndex >= plannedTrains.length) return false;
+      const train = plannedTrains[nextTrainIndex];
+      const xml = buildAssignmentXml(train, workingTracks, lastAssignedTrackId);
+      document.getElementById("xmlPreview").textContent = xml;
+      const response = await fetch("/api/assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/xml", "Accept": "application/json" },
+        body: xml
+      });
+      const decision = await response.json();
+      document.getElementById("responsePreview").textContent = JSON.stringify(decision, null, 2);
+      const result = { ...train, ...decision };
+      results.push(result);
+      if (decision.outcome === "ASSIGNED" && decision.assignedTrackId) {
+        lastAssignedTrackId = decision.assignedTrackId;
+        const assignedTrack = workingTracks.find(track => track.id === decision.assignedTrackId);
+        assignedTrack.occupations.push({ start: train.start, end: train.end, trainId: train.requestId, label: train.requestId.replace("TRAIN-", "TR-") });
+      }
+      nextTrainIndex += 1;
+      renderResults();
+      renderTracks();
+      renderTimeline();
+      renderCountersAndLog(result);
+      return true;
+    }
+
+    async function runSimulation() {
+      resetSimulation();
+      const button = document.getElementById("runBtn");
+      const stepButton = document.getElementById("stepBtn");
+      const summary = document.getElementById("summary");
+      button.disabled = true; stepButton.disabled = true;
+      summary.textContent = `Running ${plannedTrains.length} XML train requests...`;
+      try {
+        while (await processOneTrain()) {
+          await sleep(Number(document.getElementById("simulationSpeed").value));
+        }
+        const assigned = results.filter(r => r.outcome === "ASSIGNED").length;
+        const review = results.length - assigned;
+        const usedTracks = [...new Set(results.map(r => r.assignedTrackId).filter(Boolean))].join(", ") || "none";
+        summary.textContent = `XML simulation complete. ${assigned} trains assigned automatically, ${review} sent to manual review. Used tracks: ${usedTracks}.`;
+      } catch (error) {
+        summary.textContent = `XML simulation failed: ${error}`;
+      } finally {
+        button.disabled = false; stepButton.disabled = false;
+      }
+    }
+
+    async function stepOne() {
+      const summary = document.getElementById("summary");
+      try {
+        const processed = await processOneTrain();
+        summary.textContent = processed ? `Processed ${nextTrainIndex} of ${plannedTrains.length} XML train requests.` : "All planned trains have already been processed.";
+      } catch (error) {
+        summary.textContent = `Step failed: ${error}`;
+      }
+    }
+
+    function randomScenario() {
+      const statuses = ["OPEN", "OPEN", "OPEN", "OPEN", "CLOSED", "UNDER_MAINTENANCE", "UNKNOWN"];
+      workingTracks = cloneTracks().map(track => ({ ...track, status: statuses[Math.floor(Math.random() * statuses.length)] }));
+      if (!workingTracks.some(track => track.status === "OPEN")) workingTracks[0].status = "OPEN";
+      results = []; nextTrainIndex = 0;
+      document.getElementById("summary").textContent = "Random track scenario created. Run or step through XML assignment requests.";
+      document.getElementById("resultsBody").innerHTML = '<tr><td colspan="8" class="note">No simulation run yet.</td></tr>';
+      document.getElementById("liveLog").innerHTML = '<li class="note">Random scenario ready.</li>';
+      renderTracks(); renderTimeline();
+    }
+
+    function applyScenarioPreset() {
+      const preset = document.getElementById("scenarioPreset").value;
+      workingTracks = cloneTracks();
+      if (preset === "balanced") {
+        document.getElementById("trainCount").value = "20";
+        document.getElementById("durationMinutes").value = "20";
+        document.getElementById("gapMinutes").value = "7";
+      }
+      if (preset === "rush") {
+        document.getElementById("trainCount").value = "30";
+        document.getElementById("durationMinutes").value = "25";
+        document.getElementById("gapMinutes").value = "4";
+        ["T3", "T6"].forEach(id => workingTracks.find(t => t.id === id).status = "CLOSED");
+      }
+      if (preset === "maintenance") {
+        document.getElementById("trainCount").value = "20";
+        document.getElementById("durationMinutes").value = "30";
+        document.getElementById("gapMinutes").value = "6";
+        ["T4", "T6", "T8", "T10"].forEach(id => workingTracks.find(t => t.id === id).status = "UNDER_MAINTENANCE");
+      }
+      if (preset === "incident") {
+        document.getElementById("trainCount").value = "20";
+        document.getElementById("durationMinutes").value = "20";
+        document.getElementById("gapMinutes").value = "5";
+        ["T2", "T7", "T10"].forEach(id => workingTracks.find(t => t.id === id).status = "UNKNOWN");
+      }
+      results = [];
+      nextTrainIndex = 0;
+      buildPlannedTrains();
+      renderTracks();
+      renderTimeline();
+      renderResults();
+      document.getElementById("summary").textContent = `Scenario '${preset}' loaded. Run or step through XML requests.`;
+      document.getElementById("liveLog").innerHTML = '<li class="note">Scenario loaded. No trains processed yet.</li>';
+    }
+
+    function toggleXmlPanels() {
+      const visible = document.getElementById("showXml").checked;
+      document.getElementById("xmlRequestCard").classList.toggle("hidden", !visible);
+      document.getElementById("apiResponseCard").classList.toggle("hidden", !visible);
+    }
+
+    function exportResults() {
+      const payload = {
+        generatedAt: new Date().toISOString(),
+        requestFormat: "XML",
+        summary: {
+          total: results.length,
+          assigned: results.filter(r => r.outcome === "ASSIGNED").length,
+          manualReview: results.filter(r => r.outcome !== "ASSIGNED").length
+        },
+        results
+      };
+      document.getElementById("responsePreview").textContent = JSON.stringify(payload, null, 2);
+      document.getElementById("summary").textContent = "Results JSON prepared in the API response panel. Copy it for your report if needed.";
+    }
+    function initSelectors() {
+      const lastTrack = document.getElementById("lastTrack");
+      lastTrack.innerHTML = baseTracks.map(track => `<option value="${track.id}" ${track.id === "T1" ? "selected" : ""}>${track.id}</option>`).join("");
+      ["trainCount", "startTime", "durationMinutes", "gapMinutes", "lastTrack"].forEach(id => {
+        document.getElementById(id).addEventListener("change", () => { buildPlannedTrains(); renderTimeline(); document.getElementById("totalTrains").textContent = plannedTrains.length; });
+      });
+    }
+
+    document.getElementById("runBtn").addEventListener("click", runSimulation);
+    document.getElementById("stepBtn").addEventListener("click", stepOne);
+    document.getElementById("randomBtn").addEventListener("click", randomScenario);
+    document.getElementById("exportBtn").addEventListener("click", exportResults);
+    document.getElementById("resetBtn").addEventListener("click", resetSimulation);
+    initSelectors();
+    resetSimulation();
+    toggleXmlPanels();
+    loadHealth();
+  </script>
+</body>
+</html>

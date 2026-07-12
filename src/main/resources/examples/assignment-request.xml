@@ -1,0 +1,12 @@
+<assignmentRequest id="REQ-XML-1"
+                   start="2026-08-05T10:00:00Z"
+                   end="2026-08-05T10:20:00Z"
+                   lastAssignedTrackId="T1">
+  <tracks>
+    <track id="T1" status="OPEN">
+      <occupation start="2026-08-05T09:00:00Z" end="2026-08-05T09:30:00Z"/>
+    </track>
+    <track id="T2" status="OPEN"/>
+    <track id="T3" status="CLOSED"/>
+  </tracks>
+</assignmentRequest>
